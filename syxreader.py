@@ -3,6 +3,8 @@
 import argparse
 import math
 
+NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
 def int_from_file(f):
 	return int(f.read(1).hex(), 16)
 
@@ -44,6 +46,16 @@ def frequency(coarse, fine, mode):
 		base_frequency = base_frequency * math.exp(2.30258509299404568402 * (fine / 100))
 		return base_frequency
 
+def operator_breakpoin(breakpoint_number):
+	# C3 = 27
+	note_name = NOTES[(breakpoint_number + 9) % 12]
+	breakpoint = 3
+	for octave in range(-1,8):
+		if breakpoint_number < breakpoint:
+			return "{}{}".format(note_name, octave)
+		breakpoint += 12
+	return "Unknown"
+
 def setupArguments():
 	parser = argparse.ArgumentParser(
 		prog = "syxreader.py",
@@ -70,7 +82,8 @@ if __name__ == "__main__":
 				operator_level = int_from_file(f)
 				print("OP {} EG Level {}: {}".format(operator, level, operator_level))
 			operator_scaling_break_point = int_from_file(f)
-			print("OP {} Keyboard level scaling breakpoint: {}".format(operator, operator_scaling_break_point))
+			
+			print("OP {} Keyboard level scaling breakpoint: {} ({})".format(operator, operator_scaling_break_point, operator_breakpoin(operator_scaling_break_point)))
 			operator_left_depth = int_from_file(f)
 			print("OP {} Keyboard level scaling left depth: {}".format(operator, operator_left_depth))
 			operator_right_depth = int_from_file(f)
@@ -94,7 +107,7 @@ if __name__ == "__main__":
 			velocity_sensitivity_and_amp_mod = int_from_file(f)
 			key_velocity_sensitivity = velocity_sensitivity_and_amp_mod >> 2
 			print("OP {} key velocity sensitivity: {}".format(operator, key_velocity_sensitivity))
-			amplitude_mod_sensitivity = velocity_sensitivity_and_amp_mod & ~(1 << 3) & ~(1 << 4) & ~(1 << 5) & ~(1 << 6)
+			amplitude_mod_sensitivity = velocity_sensitivity_and_amp_mod & ~(1 << 2) & ~(1 << 3) & ~(1 << 4) & ~(1 << 5) & ~(1 << 6) & ~(1 << 6)
 			print("OP {} amplitude modulation sensitivity: {}".format(operator, amplitude_mod_sensitivity))
 		
 			output_level = int_from_file(f)
